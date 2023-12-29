@@ -16,50 +16,97 @@ h1, h2, h3, h4 {
     font-family: 'Roboto Slab', serif;
 }
 
-.header {
+.container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-flow: column;
-    margin: 0;
-    width: 100%;
-    height: 100%;
+    flex-direction: column;
 }
 
-.header > h1, h2 {
-    margin: 0;
-    flex: 100%;
-    width: 100%;
-    text-align: center;
-    background-color: #F15F4E;
+.header {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: #231F20 0.2rem solid;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2rem;
+    background-color: #426C95;
     color: #FAF7CA;
 }
 
+.header > h1, h2 {
+    margin: 5px;
+    flex: 1;
+}
+
 .about-me {
+    flex: 1; 
     display: flex;
-    margin: 0;
-    justify-content: center;
-    align-items: center;
-    flex-flow: column;
+    flex-direction: column;
+    border: #231F20 0.2rem solid;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2rem;
+    background-color: #F15F4E;
 }
 
 .about-me > h3 {
-    background-color: #426C95;
-    color: #F4D550;
-    text-align: center;
-    padding: 1em;
-    margin: 0;
-    flex: 100%;
-    width: 100%;
+    margin: 0.75rem;
+    flex: 1;
 }
 
 .about-me > p {
-    padding: 1em;
-    text-align: center;
-    flex: 60%;
-    background-color: #FAF7CA;
-    color: #231F20;
-    margin: 0;
+    margin: 0.5rem;
+    flex: 1;
+}
+
+.skills {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: #231F20 0.2rem solid;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2rem;
+    background-color: #F4D550;
+    min-width: 50rem;
+    min-height: 50rem;
+}
+
+.skills > h3 {
+    margin: 0.75rem;
     width: 100%;
 }
 
+.skill-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0.5rem;
+    min-width: 30rem;
+    min-height: 10rem;
+}
+
+.skill {
+    flex: 1;
+    margin: 0.5rem;
+    min-height: 10rem;
+    min-width: 5rem;
+    max-height: 7rem;
+    border: #231F20 0.2rem solid;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+
+.skill:hover {
+    background-color: #F15F4E;
+    flex: 1.5;
+}
+
+.skill > h4 {
+    margin: 0.5rem;
+}
+
+.skill > p {
+    margin: 0.5rem;
+}
