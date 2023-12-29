@@ -60,6 +60,8 @@ h1, h2, h3, h4 {
     flex: 1;
 }
 
+/* handle the flexboxing for larger screens */
+/* first set flex for the skills container */
 .skills {
     flex: 1;
     display: flex;
@@ -68,9 +70,7 @@ h1, h2, h3, h4 {
     border-radius: 1rem;
     padding: 2rem;
     margin: 2rem;
-    background-color: #F4D550;
-    min-width: 50rem;
-    min-height: 50rem;
+    background-color: #426C95;
 }
 
 .skills > h3 {
@@ -78,31 +78,30 @@ h1, h2, h3, h4 {
     width: 100%;
 }
 
+/* set flex for skill rows */
 .skill-row {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     margin: 0.5rem;
-    min-width: 30rem;
-    min-height: 10rem;
 }
 
+/* set flex for each skill */
 .skill {
     flex: 1;
     margin: 0.5rem;
-    min-height: 10rem;
-    min-width: 5rem;
-    max-height: 7rem;
     border: #231F20 0.2rem solid;
     border-radius: 1rem;
     text-align: center;
+    background-color: #F4D550;
 }
 
-
+/* when skills are hovered over they expand and the background color changes */
 .skill:hover {
-    background-color: #F15F4E;
-    flex: 1.5;
+    background-color: #FAF7CA;
+    flex: 1.25;
 }
+
 
 .skill > h4 {
     margin: 0.5rem;
@@ -110,4 +109,11 @@ h1, h2, h3, h4 {
 
 .skill > p {
     margin: 0.5rem;
+}
+
+/* handle the flexboxing for smaller screens */
+@media (max-width: 500px) {
+    .skill-row {
+        flex-direction: column;
+    }
 }
