@@ -114,6 +114,12 @@ h1, h2, h3, h4 {
 /* handle the flexboxing for smaller screens */
 @media (max-width: 500px) {
     .skill-row {
+        margin: none;
+        padding: none;
         flex-direction: column;
+    }
+    
+    .skill:hover {
+        flex: 1;
     }
 }
