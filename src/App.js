@@ -79,9 +79,11 @@ const skills = [
 
 function Skills() {
     return (
-        <div className="skills">
+        <div className="skills-container">
             <h3>Skills</h3>
-            {skills.map(skill => Skill(skill.title, skill.desc))}
+            <div className="skills">
+                {skills.map(skill => Skill(skill.title, skill.desc))}
+            </div>
         </div>
     );
 }
