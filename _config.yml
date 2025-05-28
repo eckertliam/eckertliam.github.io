@@ -1,0 +1,12 @@
+title: Liam Eckert's Technical Journal
+email: liameckert17@gmail.com
+description: >-
+  A journal on compiler engineering, systems programming, and machine learning by Liam Eckert.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://eckertliam.github.io"
+github_username: eckertliam
+
+# Build settings
+theme: minima
+plugins:
+  - jekyll-feed
