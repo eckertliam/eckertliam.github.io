@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "ToyC Parser"
-date: 2025-06-24
+date: 2025-06-23
 description: "A minimal compiler written in Python generating LLVM IR"
 categories: [compilers, programming-languages]
 tags: [compilers, programming-languages]
@@ -9,7 +9,7 @@ tags: [compilers, programming-languages]
 
 # Introduction
 
-In the [last post](% post_url 2025-06-04-toyc-scanner %), we implemented a scanner for the ToyC programming language. We broke our source down into a stream of tokens. While tokens help us better understand what we're looking at, we still don't know how those pieces fit together. 
+In the [last post]({% post_url 2025-06-04-toyc-scanner %}), we implemented a scanner for the ToyC programming language. We broke our source down into a stream of tokens. While tokens help us better understand what we're looking at, we still don't know how those pieces fit together. 
 
 That's where the parser comes in.
 

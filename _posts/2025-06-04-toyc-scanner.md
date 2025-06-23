@@ -225,4 +225,4 @@ Token(kind=SEMICOLON, lexeme=;, line=1)
 Token(kind=EOF, lexeme=, line=1)
 ```
 
-With a tidy token list in-hand, we're ready to start thinking in trees, but that is a story for the next post.
+With a tidy token list in-hand, we're ready to start thinking in trees, read [ToyC Parser]({% post_url 2025-06-23-toyc-parser %}) to see how we parse our tokens into an AST.
