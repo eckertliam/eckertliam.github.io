@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>TODO</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath d='M2 2h12v4H10v8H6V6H2z' fill='%23ff7a00'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #000;
+    --ember: #ff5a00;
+    --gold: #ffd23f;
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+
+  body {
+    overflow: hidden;
+    background: radial-gradient(120% 70% at 50% 100%, #2a0600 0%, #0a0100 55%, var(--bg) 100%);
+    color: var(--gold);
+  }
+
+  .fire {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    -webkit-mask-image: linear-gradient(to top, #000 35%, transparent 80%);
+    mask-image: linear-gradient(to top, #000 35%, transparent 80%);
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    padding: 16px 16px 22vh;
+  }
+
+  .logo {
+    position: relative;
+    width: min(100%, 860px);
+    font: 900 clamp(64px, 22vw, 220px)/1 Impact, Haettenschweiler, "Arial Black", sans-serif;
+    text-align: center;
+  }
+
+  .logo svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .glow {
+    position: absolute;
+    inset: -30% -15%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgb(255 90 0 / .35), transparent);
+    animation: flicker 2.7s infinite;
+  }
+
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / .65));
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: .85; }
+    12% { opacity: 1; }
+    20% { opacity: .7; }
+    38% { opacity: .95; }
+    55% { opacity: .75; }
+    70% { opacity: 1; }
+    84% { opacity: .8; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow { animation: none; }
+  }
+</style>
+</head>
+<body>
+<canvas class="fire" aria-hidden="true"></canvas>
+<main>
+  <h1 class="logo">
+    <span class="glow" aria-hidden="true"></span>
+    <span class="text">TODO</span>
+  </h1>
+</main>
+<div class="vignette" aria-hidden="true"></div>
+
+<script>
+  // ---- Logo: blocky letters, warped so the outer ones loom larger, extruded toward a vanishing point.
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const O_SHAPE = [
+    [[20, 0], [72, 0], [92, 20], [92, 80], [72, 100], [20, 100], [0, 80], [0, 20]],
+    [[32, 30], [60, 30], [60, 70], [32, 70]],
+  ];
+  const D_SHAPE = [
+    [[0, 0], [70, 0], [92, 22], [92, 78], [70, 100], [0, 100]],
+    [[32, 30], [60, 30], [60, 70], [32, 70]],
+  ];
+  const T_SHAPE = [
+    [[0, 0], [100, 0], [100, 32], [66, 32], [66, 100], [34, 100], [34, 32], [0, 32]],
+  ];
+  const LETTERS = [[0, T_SHAPE], [110, O_SHAPE], [212, D_SHAPE], [314, O_SHAPE]];
+  const CX = 203;
+  const VANISH = [CX, -260];
+  const DEPTH = 24;
+
+  function subdivide(poly, step) {
+    const out = [];
+    poly.forEach((a, i) => {
+      const b = poly[(i + 1) % poly.length];
+      const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+      for (let k = 0; k < n; k++) out.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+    });
+    return out;
+  }
+
+  function warp([x, y]) {
+    const t = (x - CX) / CX;
+    const wy = y * (1 + 0.24 * t * t);
+    return [CX + (x - CX) * (1 + 0.1 * wy / 100), wy];
+  }
+
+  function extrudeScale(i) {
+    return 1 + i * 0.0024;
+  }
+
+  function lerpColor(a, b, t) {
+    const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
+    return `rgb(${c.join(' ')})`;
+  }
+
+  function el(name, attrs, parent) {
+    const node = document.createElementNS(NS, name);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
+  function buildLogo() {
+    const polys = LETTERS.flatMap(([dx, shapes]) =>
+      shapes.map(poly => subdivide(poly.map(([x, y]) => [x + dx, y]), 6).map(warp)));
+    const d = polys.map(p => 'M' + p.map(pt => pt.map(v => v.toFixed(1)).join(' ')).join('L') + 'Z').join('');
+
+    // Bounds include the deepest extrusion layer.
+    const s = extrudeScale(DEPTH);
+    const pts = polys.flat().flatMap(([x, y]) =>
+      [[x, y], [VANISH[0] + (x - VANISH[0]) * s, VANISH[1] + (y - VANISH[1]) * s]]);
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const pad = 6;
+    const minX = Math.min(...xs) - pad, minY = Math.min(...ys) - pad;
+    const w = Math.max(...xs) + pad - minX, h = Math.max(...ys) + pad - minY;
+
+    const svg = el('svg', { viewBox: `${minX} ${minY} ${w} ${h}`, role: 'img', 'aria-label': 'TODO' });
+    el('title', {}, svg).textContent = 'TODO';
+    const defs = el('defs', {}, svg);
+    el('path', { id: 'todo-shape', d, 'fill-rule': 'evenodd' }, defs);
+
+    const face = el('linearGradient', { id: 'face', x1: 0, y1: 0, x2: 0, y2: 128, gradientUnits: 'userSpaceOnUse' }, defs);
+    [['0', '#ffe9a0'], ['.22', '#ffc433'], ['.48', '#ff8c1a'], ['.74', '#c8320a'], ['1', '#5a0b00']]
+      .forEach(([offset, color]) => el('stop', { offset, 'stop-color': color }, face));
+
+    const metal = el('filter', { id: 'metal', x: '-5%', y: '-5%', width: '110%', height: '110%', 'color-interpolation-filters': 'sRGB' }, defs);
+    el('feGaussianBlur', { in: 'SourceAlpha', stdDeviation: 2.2, result: 'blur' }, metal);
+    const spec = el('feSpecularLighting', { in: 'blur', surfaceScale: 5, specularConstant: 1.1, specularExponent: 22, 'lighting-color': '#fff1c8', result: 'spec' }, metal);
+    el('feDistantLight', { azimuth: 240, elevation: 38 }, spec);
+    el('feComposite', { in: 'spec', in2: 'SourceAlpha', operator: 'in', result: 'shine' }, metal);
+    el('feTurbulence', { type: 'fractalNoise', baseFrequency: '0.045 0.11', numOctaves: 4, seed: 7, result: 'noise' }, metal);
+    el('feColorMatrix', { in: 'noise', type: 'matrix', values: '0 0 0 0 .1  0 0 0 0 .02  0 0 0 0 0  -1.2 0 0 0 .72', result: 'grime' }, metal);
+    el('feComposite', { in: 'grime', in2: 'SourceAlpha', operator: 'in', result: 'dirt' }, metal);
+    const merge = el('feMerge', {}, metal);
+    ['SourceGraphic', 'dirt', 'shine'].forEach(n => el('feMergeNode', { in: n }, merge));
+
+    const far = [14, 2, 0], near = [96, 22, 4];
+    for (let i = DEPTH; i >= 1; i--) {
+      const k = extrudeScale(i);
+      el('use', {
+        href: '#todo-shape',
+        fill: lerpColor(far, near, 1 - i / DEPTH),
+        transform: `translate(${VANISH[0]} ${VANISH[1]}) scale(${k}) translate(${-VANISH[0]} ${-VANISH[1]})`,
+      }, svg);
+    }
+    el('use', { href: '#todo-shape', fill: 'url(#face)', stroke: '#1c0400', 'stroke-width': 1.2, filter: 'url(#metal)' }, svg);
+
+    const logo = document.querySelector('.logo');
+    logo.querySelector('.text').replaceWith(svg);
+  }
+
+  buildLogo();
+
+  // ---- Fire: the classic PSX DOOM fire spread.
+
+  const PALETTE = [
+    0x07,0x07,0x07, 0x1f,0x07,0x07, 0x2f,0x0f,0x07, 0x47,0x0f,0x07, 0x57,0x17,0x07, 0x67,0x1f,0x07,
+    0x77,0x1f,0x07, 0x8f,0x27,0x07, 0x9f,0x2f,0x07, 0xaf,0x3f,0x07, 0xbf,0x47,0x07, 0xc7,0x47,0x07,
+    0xdf,0x4f,0x07, 0xdf,0x57,0x07, 0xdf,0x57,0x07, 0xd7,0x5f,0x07, 0xd7,0x5f,0x07, 0xd7,0x67,0x0f,
+    0xcf,0x6f,0x0f, 0xcf,0x77,0x0f, 0xcf,0x7f,0x0f, 0xcf,0x87,0x17, 0xc7,0x87,0x17, 0xc7,0x8f,0x17,
+    0xc7,0x97,0x1f, 0xbf,0x9f,0x1f, 0xbf,0x9f,0x1f, 0xbf,0xa7,0x27, 0xbf,0xa7,0x27, 0xbf,0xaf,0x2f,
+    0xb7,0xaf,0x2f, 0xb7,0xb7,0x2f, 0xb7,0xb7,0x37, 0xcf,0xcf,0x6f, 0xdf,0xdf,0x9f, 0xef,0xef,0xc7,
+    0xff,0xff,0xff,
+  ];
+  const MAX = PALETTE.length / 3 - 1;
+  // RGBA packed little-endian; intensity 0 is transparent so the background shows through.
+  const COLORS = new Uint32Array(MAX + 1).map((_, i) =>
+    i === 0 ? 0 : (0xff << 24 | PALETTE[i * 3 + 2] << 16 | PALETTE[i * 3 + 1] << 8 | PALETTE[i * 3]) >>> 0);
+
+  const canvas = document.querySelector('.fire');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let W, H, pixels, image, out;
+
+  function reset() {
+    const px = Math.max(3, Math.round(innerHeight / 160));
+    W = Math.ceil(innerWidth / px);
+    H = Math.ceil(innerHeight / px);
+    canvas.width = W;
+    canvas.height = H;
+    pixels = new Uint8Array(W * H);
+    pixels.fill(MAX, (H - 1) * W);
+    image = ctx.createImageData(W, H);
+    out = new Uint32Array(image.data.buffer);
+  }
+
+  function spread() {
+    for (let x = 0; x < W; x++) {
+      for (let y = 1; y < H; y++) {
+        const src = y * W + x;
+        const p = pixels[src];
+        if (p === 0) {
+          pixels[src - W] = 0;
+        } else {
+          const r = Math.round(Math.random() * 3) & 3;
+          pixels[src - W - r + 1] = p - (r & 1);
+        }
+      }
+    }
+  }
+
+  function draw() {
+    for (let i = 0; i < pixels.length; i++) out[i] = COLORS[pixels[i]];
+    ctx.putImageData(image, 0, 0);
+  }
+
+  function still() {
+    for (let i = 0; i < H * 2; i++) spread();
+    draw();
+  }
+
+  let last = 0;
+  function frame(t) {
+    if (!reduceMotion.matches && t - last > 1000 / 30) {
+      last = t;
+      spread();
+      draw();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  let resizeTimer;
+  addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { reset(); still(); }, 150);
+  });
+
+  reset();
+  still();
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>
